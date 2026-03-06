@@ -1,9 +1,10 @@
 'use client';
 
 import { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text, Line, Stars } from '@react-three/drei';
+import { Canvas, useFrame, useLoader } from '@react-three/fiber';
+import { OrbitControls, Text, Line, Stars, Billboard } from '@react-three/drei';
 import * as THREE from 'three';
+import { TextureLoader } from 'three';
 import { Agent, departments } from '@/data/agents';
 
 interface SceneProps {
@@ -12,73 +13,86 @@ interface SceneProps {
   onSelectAgent: (agent: Agent) => void;
 }
 
-function AgentNode({ agent, isSelected, onClick }: { agent: Agent; isSelected: boolean; onClick: () => void }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+function AgentSprite({ agent, isSelected, onClick }: { agent: Agent; isSelected: boolean; onClick: () => void }) {
+  const groupRef = useRef<THREE.Group>(null);
   const glowRef = useRef<THREE.Mesh>(null);
 
-  const baseIntensity = agent.status === 'active' ? 1 : agent.status === 'idle' ? 0.5 : 0.2;
+  let texture: THREE.Texture | null = null;
+  try {
+    texture = useLoader(TextureLoader, agent.image);
+  } catch {
+    texture = null;
+  }
 
   useFrame(({ clock }) => {
-    if (meshRef.current) {
-      const pulse = agent.status === 'active'
-        ? Math.sin(clock.getElapsedTime() * 2 + agent.position[0]) * 0.05 + 0.35
-        : 0.3;
-      meshRef.current.scale.setScalar(pulse);
+    if (groupRef.current) {
+      const hover = agent.status === 'active'
+        ? Math.sin(clock.getElapsedTime() * 1.5 + agent.position[0]) * 0.08
+        : 0;
+      groupRef.current.position.y = agent.position[1] + hover;
     }
     if (glowRef.current) {
-      const glowPulse = agent.status === 'active'
-        ? Math.sin(clock.getElapsedTime() * 1.5 + agent.position[2]) * 0.15 + 0.7
-        : 0.5;
-      glowRef.current.scale.setScalar(glowPulse);
+      const pulse = agent.status === 'active'
+        ? Math.sin(clock.getElapsedTime() * 2 + agent.position[2]) * 0.1 + 0.9
+        : 0.7;
+      glowRef.current.scale.setScalar(pulse);
       (glowRef.current.material as THREE.MeshBasicMaterial).opacity =
-        (agent.status === 'active' ? 0.3 : 0.1) * (isSelected ? 1.5 : 1);
+        (isSelected ? 0.4 : 0.15);
     }
   });
 
+  const size = isSelected ? 1.4 : 1.1;
+
   return (
-    <group position={agent.position}>
-      {/* Glow sphere */}
-      <mesh ref={glowRef} onClick={(e) => { e.stopPropagation(); onClick(); }}>
-        <sphereGeometry args={[1, 16, 16]} />
-        <meshBasicMaterial color={agent.color} transparent opacity={0.2} />
+    <group ref={groupRef} position={agent.position}>
+      {/* Glow circle behind */}
+      <mesh ref={glowRef} position={[0, 0, -0.05]}>
+        <circleGeometry args={[0.8, 32]} />
+        <meshBasicMaterial color={agent.color} transparent opacity={0.15} side={THREE.DoubleSide} />
       </mesh>
-      {/* Core sphere */}
-      <mesh ref={meshRef} onClick={(e) => { e.stopPropagation(); onClick(); }}>
-        <sphereGeometry args={[1, 32, 32]} />
-        <meshStandardMaterial
-          color={agent.color}
-          emissive={agent.color}
-          emissiveIntensity={baseIntensity * (isSelected ? 2 : 1)}
-          roughness={0.2}
-          metalness={0.8}
-        />
-      </mesh>
+
+      {/* Agent image as billboard sprite */}
+      <Billboard follow lockX={false} lockY={false} lockZ={false}>
+        <mesh onClick={(e) => { e.stopPropagation(); onClick(); }}>
+          <planeGeometry args={[size, size * 1.33]} />
+          {texture ? (
+            <meshBasicMaterial map={texture} transparent alphaTest={0.1} side={THREE.DoubleSide} />
+          ) : (
+            <meshBasicMaterial color={agent.color} />
+          )}
+        </mesh>
+      </Billboard>
+
       {/* Selection ring */}
       {isSelected && (
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.5, 0.55, 32]} />
+        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, -0.7, 0]}>
+          <ringGeometry args={[0.6, 0.65, 32]} />
           <meshBasicMaterial color="#ffffff" transparent opacity={0.8} side={THREE.DoubleSide} />
         </mesh>
       )}
-      {/* Name label */}
+
+      {/* Name + number label */}
       <Text
-        position={[0, 0.6, 0]}
-        fontSize={0.25}
+        position={[0, -0.85, 0]}
+        fontSize={0.2}
         color="#ffffff"
         anchorX="center"
-        anchorY="bottom"
+        anchorY="top"
         outlineWidth={0.02}
         outlineColor="#000000"
       >
-        {agent.name}
+        {`#${agent.number} ${agent.name}`}
       </Text>
+
       {/* Status indicator */}
-      <mesh position={[0.35, 0.4, 0]}>
-        <sphereGeometry args={[0.06, 8, 8]} />
-        <meshBasicMaterial
-          color={agent.status === 'active' ? '#00ff00' : agent.status === 'idle' ? '#ffaa00' : '#ff0000'}
-        />
-      </mesh>
+      <Billboard>
+        <mesh position={[0.5, 0.55, 0]}>
+          <circleGeometry args={[0.06, 16]} />
+          <meshBasicMaterial
+            color={agent.status === 'active' ? '#00ff00' : agent.status === 'idle' ? '#ffaa00' : '#ff0000'}
+          />
+        </mesh>
+      </Billboard>
     </group>
   );
 }
@@ -183,7 +197,7 @@ function SceneContent({ agents, selectedAgent, onSelectAgent }: SceneProps) {
       <FloatingParticles />
 
       {agents.map((agent) => (
-        <AgentNode
+        <AgentSprite
           key={agent.id}
           agent={agent}
           isSelected={selectedAgent?.id === agent.id}

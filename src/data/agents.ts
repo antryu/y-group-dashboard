@@ -3,6 +3,8 @@ export type AgentStatus = 'active' | 'idle' | 'offline';
 export interface Agent {
   id: string;
   name: string;
+  number: string;
+  image: string;
   department: string;
   departmentKr: string;
   color: string;
@@ -50,12 +52,44 @@ export const departments: Department[] = [
   { name: 'Audit', nameKr: '감사실', color: '#aa44ff', agents: ['Audity'], center: [-4, 0, -8] },
   { name: 'SW Dev', nameKr: 'SW개발본부', color: '#ff8800', agents: ['Pixely', 'Buildy', 'Testy'], center: [0, 0, -6] },
   { name: 'Content', nameKr: '콘텐츠본부', color: '#44ff88', agents: ['Buzzy', 'Wordy', 'Edity', 'Searchy'], center: [4, 0, -4] },
-  { name: 'Marketing', nameKr: '마케팅본부', color: '#ff44aa', agents: ['Growthy', 'Logoy', 'Helpy', 'Clicky'], center: [8, 0, -2] },
+  { name: 'Marketing', nameKr: '마케팅본부', color: '#ff44aa', agents: ['Growthy', 'Logoy', 'Helpy', 'Clicky', 'Selly'], center: [8, 0, -2] },
   { name: 'ICT', nameKr: 'ICT본부', color: '#44ffff', agents: ['Stacky', 'Watchy', 'Guardy'], center: [0, 0, 6] },
   { name: 'HR', nameKr: '인사실', color: '#ffff44', agents: ['Hiry', 'Evaly'], center: [-4, 0, 6] },
-  { name: '-y Capital', nameKr: '-y Capital', color: '#ffcc00', agents: ['Quanty', 'Tradey', 'Globy', 'Fieldy', 'Hedgy', 'Valuey'], center: [6, 0, 4] },
-  { name: '-y SaaS', nameKr: '-y SaaS', color: '#cccccc', agents: ['Opsy'], center: [4, 0, 8] },
+  { name: '_y Capital', nameKr: '_y Capital', color: '#ffcc00', agents: ['Quanty', 'Tradey', 'Globy', 'Fieldy', 'Hedgy', 'Valuey'], center: [6, 0, 4] },
+  { name: '_y SaaS', nameKr: '_y SaaS', color: '#cccccc', agents: ['Opsy'], center: [4, 0, 8] },
 ];
+
+const AGENT_META: Record<string, { number: string; image: string }> = {
+  Tasky: { number: '01', image: '/agents/01-tasky.png' },
+  Finy: { number: '02', image: '/agents/02-finy.png' },
+  Legaly: { number: '03', image: '/agents/03-legaly.png' },
+  Skepty: { number: '04', image: '/agents/04-skepty.png' },
+  Audity: { number: '05', image: '/agents/05-audity.png' },
+  Pixely: { number: '06', image: '/agents/06-pixely.png' },
+  Buildy: { number: '07', image: '/agents/07-buildy.png' },
+  Testy: { number: '08', image: '/agents/08-testy.png' },
+  Buzzy: { number: '09', image: '/agents/09-buzzy.png' },
+  Wordy: { number: '10', image: '/agents/10-wordy.png' },
+  Edity: { number: '11', image: '/agents/11-edity.png' },
+  Searchy: { number: '12', image: '/agents/12-searchy.png' },
+  Growthy: { number: '13', image: '/agents/13-growthy.png' },
+  Logoy: { number: '14', image: '/agents/14-logoy.png' },
+  Helpy: { number: '15', image: '/agents/15-helpy.png' },
+  Clicky: { number: '16', image: '/agents/16-clicky.png' },
+  Selly: { number: '17', image: '/agents/17-selly.png' },
+  Stacky: { number: '18', image: '/agents/18-stacky.png' },
+  Watchy: { number: '19', image: '/agents/19-watchy.png' },
+  Guardy: { number: '20', image: '/agents/20-guardy.png' },
+  Hiry: { number: '21', image: '/agents/21-hiry.png' },
+  Evaly: { number: '22', image: '/agents/22-evaly.png' },
+  Quanty: { number: '23', image: '/agents/23-quanty.png' },
+  Tradey: { number: '24', image: '/agents/24-tradey.png' },
+  Globy: { number: '25', image: '/agents/25-globy.png' },
+  Fieldy: { number: '26', image: '/agents/26-fieldy.png' },
+  Hedgy: { number: '27', image: '/agents/27-hedgy.png' },
+  Valuey: { number: '28', image: '/agents/28-valuey.png' },
+  Opsy: { number: '29', image: '/agents/29-opsy.png' },
+};
 
 function randomStatus(): AgentStatus {
   const r = Math.random();
@@ -79,9 +113,12 @@ export function generateAgents(): Agent[] {
   for (const dept of departments) {
     for (let i = 0; i < dept.agents.length; i++) {
       const name = dept.agents[i];
+      const meta = AGENT_META[name] || { number: '??', image: '' };
       agents.push({
         id: name.toLowerCase(),
         name,
+        number: meta.number,
+        image: meta.image,
         department: dept.name,
         departmentKr: dept.nameKr,
         color: dept.color,

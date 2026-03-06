@@ -37,9 +37,9 @@ export default function SidePanel({ agents, selectedAgent, activityLog }: SidePa
       {/* Header */}
       <div className="p-4 border-b border-[#1a1a3a]">
         <h1 className="text-xl font-bold text-white">
-          <span className="text-cyan-400">-y</span> Group
+          <span className="text-cyan-400">_y</span> Holdings
         </h1>
-        <p className="text-xs text-gray-500 mt-1">AI Agent Conglomerate • 28 Agents</p>
+        <p className="text-xs text-gray-500 mt-1">AI Agent Conglomerate • 29 Agents</p>
       </div>
 
       {/* KPI Cards */}
@@ -53,9 +53,14 @@ export default function SidePanel({ agents, selectedAgent, activityLog }: SidePa
       {/* Selected Agent Detail */}
       {selectedAgent && (
         <div className="mx-4 mb-4 p-3 bg-[#12122a] border rounded-lg" style={{ borderColor: selectedAgent.color + '66' }}>
+          {selectedAgent.image && (
+            <div className="flex justify-center mb-3">
+              <img src={selectedAgent.image} alt={selectedAgent.name} className="w-20 h-20 rounded-lg object-cover border border-[#2a2a5a]" />
+            </div>
+          )}
           <div className="flex items-center gap-2 mb-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: selectedAgent.color, boxShadow: `0 0 8px ${selectedAgent.color}` }} />
-            <span className="text-white font-semibold">{selectedAgent.name}</span>
+            <span className="text-white font-semibold">#{selectedAgent.number} {selectedAgent.name}</span>
             <StatusDot status={selectedAgent.status} />
           </div>
           <div className="space-y-1 text-xs">
